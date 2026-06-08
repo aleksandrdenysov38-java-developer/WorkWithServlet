@@ -4,29 +4,44 @@ import com.example.model.Order;
 import com.example.repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-
-
 public class OrderServlet extends HttpServlet {
 
-    private final OrderRepository repository = new OrderRepository();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final OrderRepository repository;
+    private final ObjectMapper mapper;
+
+    public OrderServlet() {
+        this(new OrderRepository());
+    }
+
+    public OrderServlet(OrderRepository repository) {
+        this.repository = repository;
+        this.mapper = new ObjectMapper();
+    }
 
     @Override
     protected void doPost(HttpServletRequest req,
                           HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
 
         Order order =
                 mapper.readValue(req.getInputStream(), Order.class);
 
-        repository.save(order);
+        Order createdOrder =
+                repository.save(order);
 
         resp.setStatus(HttpServletResponse.SC_CREATED);
+        resp.setContentType("application/json;charset=UTF-8");
+
+        mapper.writeValue(
+                resp.getOutputStream(),
+                createdOrder
+        );
     }
 
     @Override
@@ -40,9 +55,13 @@ public class OrderServlet extends HttpServlet {
         Order order =
                 repository.findById(id);
 
-        resp.setContentType("application/json");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.setContentType("application/json;charset=UTF-8");
 
-        mapper.writeValue(resp.getOutputStream(), order);
+        mapper.writeValue(
+                resp.getOutputStream(),
+                order
+        );
     }
 
     @Override
@@ -53,9 +72,16 @@ public class OrderServlet extends HttpServlet {
         Order order =
                 mapper.readValue(req.getInputStream(), Order.class);
 
-        repository.update(order);
+        Order updatedOrder =
+                repository.update(order);
 
         resp.setStatus(HttpServletResponse.SC_OK);
+        resp.setContentType("application/json;charset=UTF-8");
+
+        mapper.writeValue(
+                resp.getOutputStream(),
+                updatedOrder
+        );
     }
 
     @Override

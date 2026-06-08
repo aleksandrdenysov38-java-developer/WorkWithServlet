@@ -2,26 +2,38 @@ package com.example.repository;
 
 import com.example.model.Order;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class OrderRepository {
 
-    private static final Map<Long, Order> ORDERS = new HashMap<>();
+    private final Map<Long, Order> orders = new ConcurrentHashMap<>();
+    private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public void save(Order order) {
-        ORDERS.put(order.getId(), order);
+    public Order save(Order order) {
+
+        Long id = idGenerator.getAndIncrement();
+
+        order.setId(id);
+
+        orders.put(id, order);
+
+        return order;
     }
 
     public Order findById(Long id) {
-        return ORDERS.get(id);
+        return orders.get(id);
     }
 
-    public void update(Order order) {
-        ORDERS.put(order.getId(), order);
+    public Order update(Order order) {
+
+        orders.put(order.getId(), order);
+
+        return order;
     }
 
     public void delete(Long id) {
-        ORDERS.remove(id);
+        orders.remove(id);
     }
 }
